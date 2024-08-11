@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"errors"
+
+	"exam-craft/internal/auth"
 	"exam-craft/internal/models"
 	"exam-craft/internal/pkg/utils"
 	"exam-craft/internal/repositories"
@@ -41,4 +43,28 @@ func (s *UserService) LoginUser(ctx context.Context, email, password string) (*m
 		return nil, errors.New("invalid credentials")
 	}
 	return user, nil
+}
+
+// GetOrCreateUserByGoogleID retrieves a user by their Google ID, or creates one if they don't exist.
+func (s *UserService) GetOrCreateUserByGoogleID(userInfo auth.GoogleUserInfo) (*models.User, error) {
+	user, err := s.userRepo.GetUserByEmail(context.Background(), userInfo.Email)
+	if err == nil {
+		// User exists, return user
+		return user, nil
+	}
+
+	// If user does not exist, create a new one
+	newUser := &models.User{
+		Email:    userInfo.Email,
+		Name:     userInfo.Name,
+		Password: "",        // No password needed for Google OAuth users
+		Role:     "student", // Default role, could be customized
+	}
+
+	err = s.userRepo.CreateUser(context.Background(), newUser)
+	if err != nil {
+		return nil, err
+	}
+
+	return newUser, nil
 }

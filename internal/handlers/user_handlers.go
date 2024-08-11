@@ -92,12 +92,28 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 // GoogleLogin handles Google OAuth login
 func (h *UserHandler) GoogleLogin(c *gin.Context) {
-	// TODO :
-	// auth.GoogleLogin(c)
+	auth.GoogleLogin(c)
 }
 
 // GoogleCallback handles the callback from Google OAuth
 func (h *UserHandler) GoogleCallback(c *gin.Context) {
-	// TODO :
-	// auth.GoogleCallback(c)
+	userInfo, err := auth.GoogleCallback(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := h.userService.GetOrCreateUserByGoogleID(*userInfo)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create or retrieve user"})
+		return
+	}
+
+	token, err := auth.GenerateJWT(user.ID, user.Role)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }
