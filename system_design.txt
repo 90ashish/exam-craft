@@ -1,0 +1,146 @@
+System Design of the Quiz Management System
+
+The system design of the quiz management system involves understanding how various components interact with each other to fulfill the application's requirements. Here's an overview of the system design:
+1. Architecture Overview
+
+The architecture follows a layered, modular design with the following key layers:
+
+    Presentation Layer: This is the API layer, which interacts with clients (web, mobile, etc.). It includes routes and handlers.
+    Service Layer: Contains the business logic of the application.
+    Data Access Layer: Contains repositories that interact with the database.
+    Database and Cache: Persistent storage (PostgreSQL) and caching layer (Redis).
+    Security Layer: Includes authentication and authorization mechanisms.
+    Utilities Layer: Contains utility functions for validation, encryption, etc.
+
+2. Component Diagram
+
+A component diagram visualizes the relationships and interactions between different parts of the system.
+
++-----------------+      +----------------+      +-----------------+
+|                 |      |                |      |                 |
+|  Presentation   | <--> |  Service Layer | <--> | Data Access     |
+|  Layer (API)    |      |                |      | Layer           |
+|                 |      |                |      |                 |
++-----------------+      +----------------+      +-----------------+
+       |                        |                       |
+       v                        v                       v
++-----------------+      +----------------+      +-----------------+
+|                 |      |                |      |                 |
+|    Middleware   |      |   Repositories |      |    PostgreSQL   |
+|                 |      |                |      |                 |
++-----------------+      +----------------+      +-----------------+
+       |                        |
+       v                        v
++-----------------+      +----------------+
+|                 |      |                |
+|  Authentication |      |     Redis      |
+|  and            |      |  (Cache Layer) |
+|  Authorization  |      |                |
+|                 |      +----------------+
++-----------------+
+
+
+3. Data Flow
+
+    User Registration and Login:
+        The client sends a request to the API endpoint for registration or login.
+        The request is validated by middleware.
+        The handler processes the request, calling the relevant service.
+        The service interacts with the repository to perform database operations.
+        For login, a JWT is generated and returned to the client.
+
+    Creating Quizzes and Questions:
+        An authenticated instructor sends a request to create a quiz or add questions.
+        The request is validated by middleware and checked for proper authorization.
+        The handler calls the service layer to process the request.
+        The service interacts with the repository to store data in the database and updates the cache if necessary.
+
+    Taking Quizzes and Submitting Responses:
+        An authenticated student sends a request to list available quizzes or submit responses.
+        The request is validated and authorized by middleware.
+        The handler processes the request, calling the relevant service.
+        The service fetches data from the repository (using the cache for reads) and stores responses.
+
+4. Technology Stack
+
+    Presentation Layer: Gin (web framework for handling HTTP requests).
+    Service Layer: Go (business logic implementation).
+    Data Access Layer: SQLX (for SQL database interaction).
+    Database: PostgreSQL (relational database).
+    Cache: Redis (in-memory data structure store for caching).
+    Authentication: JWT (JSON Web Tokens) and OAuth (for Google login).
+    Utilities: bcrypt (password hashing), Go's regexp package (input validation).
+
+5. Scalability Considerations
+
+    Horizontal Scaling: The application is designed to be stateless, allowing multiple instances to run behind a load balancer. This enables horizontal scaling.
+    Database Indexing: Indexes are used on frequently queried fields to improve read performance.
+    Caching: Redis is used to cache frequently accessed data, reducing the load on the database and improving response times.
+    Microservices Potential: The modular design allows for easy decomposition into microservices if needed. Each service (user management, quiz management, response management) can be scaled independently.
+
+6. Security Considerations
+
+    Input Validation: All inputs are validated to prevent SQL injection, XSS, and other vulnerabilities.
+    Password Encryption: Passwords are hashed using bcrypt before being stored in the database.
+    JWT Authentication: JWT tokens are used for stateless, secure authentication.
+    OAuth: Google OAuth integration allows users to log in using their Google accounts, providing an additional layer of security.
+
+Detailed System Design
+1. User Registration and Login
+
+Sequence Diagram:
+
+Client -> API (register/login) -> Middleware (validate) -> Handler -> Service -> Repository -> Database
+                                                            |
+                                                            v
+                                                        Generate JWT (if login)
+                                                            |
+                                                            v
+                                                          Client
+
+Example Flow for User Registration:
+
+    Client sends a POST request to /register with user details.
+    Middleware validates the input data.
+    Handler processes the request and calls UserService.RegisterUser.
+    UserService hashes the password and calls UserRepository.CreateUser.
+    UserRepository inserts the user data into the PostgreSQL database.
+    Handler returns a success response to the client.
+
+2. Creating Quizzes and Questions
+
+Sequence Diagram:
+
+Client -> API (create quiz/add question) -> Middleware (auth & validate) -> Handler -> Service -> Repository -> Database/Cache
+
+Example Flow for Creating a Quiz:
+
+    Client sends a POST request to /quizzes with quiz details (authenticated instructor).
+    Middleware checks authentication and authorization.
+    Handler processes the request and calls QuizService.CreateQuiz.
+    QuizService generates a new UUID for the quiz and calls QuizRepository.CreateQuiz.
+    QuizRepository inserts the quiz data into PostgreSQL and updates Redis cache.
+    Handler returns a success response to the client.
+
+3. Taking Quizzes and Submitting Responses
+
+Sequence Diagram:
+
+Client -> API (list quizzes/submit response) -> Middleware (auth & validate) -> Handler -> Service -> Repository -> Database/Cache
+
+Example Flow for Submitting a Quiz Response:
+
+    Client sends a POST request to /student/quizzes/:id/response with quiz answers (authenticated student).
+    Middleware checks authentication and authorization.
+    Handler processes the request and calls StudentService.SubmitResponse.
+    StudentService creates a new response entry and calls StudentResponseRepository.CreateStudentResponse.
+    StudentResponseRepository inserts the response data into PostgreSQL.
+    Handler returns a success response to the client.
+
+Summary
+
+The design of the quiz management system focuses on modularity, scalability, maintainability, and security. The layered
+ architecture ensures a clear separation of concerns, making the application easier to develop, test, and maintain. 
+ The use of caching, horizontal scaling, and microservices potential addresses scalability. Input validation, data 
+ encryption, and secure authentication mechanisms ensure the security of the system. This comprehensive design provides a
+  robust foundation for building and extending the quiz management system.
