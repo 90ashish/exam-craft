@@ -1,0 +1,60 @@
+/exam-craft
+│
+├── /cmd
+│   └── /quizapp
+│       └── main.go
+│
+├── /config
+│   └── config.go
+│
+├── /internal
+│   ├── /auth
+│   │   ├── jwt.go
+│   │   └── oauth.go
+│   │
+│   ├── /handlers
+│   │   ├── handlers.go
+│   │   ├── user_handlers.go
+│   │   ├── quiz_handlers.go
+│   │   ├── question_handlers.go
+│   │   └── student_handlers.go
+│   │
+│   ├── /middleware
+│   │   └── auth_middleware.go
+│   │
+│   ├── /models
+│   │   ├── user.go
+│   │   ├── quiz.go
+│   │   ├── question.go
+│   │   └── student_response.go
+│   │
+│   ├── /repositories
+│   │   └── user_repository.go
+│   │   └── quiz_repository.go
+│   │   └── question_repository.go
+│   │   └── student_response_repository.go
+│   │
+│   ├── /services
+│   │   ├── user_service.go
+│   │   ├── quiz_service.go
+│   │   ├── question_service.go
+│   │   └── student_service.go
+│   │
+│   ├── /routes
+│   │   └── routes.go
+│   │
+│   ├── /pkg
+│   │   └── utils
+│   │       ├── utils.go
+│   │       └── validation.go
+│
+├── /tests
+│   ├── auth_test.go
+│   ├── user_service_test.go
+│   ├── quiz_service_test.go
+│   ├── question_service_test.go
+│   ├── student_service_test.go
+│   └── validation_test.go
+│
+├── go.mod
+└── go.sum
